@@ -3,34 +3,36 @@ use assert_float_eq::assert_float_absolute_eq;
 use std::ops::{Neg, Add, Sub, Mul, Div, AddAssign, SubAssign, MulAssign, DivAssign, Index, IndexMut};
 
 #[derive(Debug, PartialEq, Copy, Clone)]
-struct Vec3 {
-    x: f64,
-    y: f64,
-    z: f64
+pub struct Vec3 {
+    pub x: f64,
+    pub y: f64,
+    pub z: f64
 }
 
+pub type Point3 = Vec3;
+
 impl Vec3 {
-    fn new(x: f64, y: f64, z: f64) -> Vec3 {
+    pub fn new(x: f64, y: f64, z: f64) -> Vec3 {
         Vec3 { x, y, z }
     }
 
-    fn length_squared(self) -> f64 {
+    pub fn length_squared(self) -> f64 {
         self.x.powi(2) + self.y.powi(2) + self.z.powi(2)
     }
 
-    fn length(self) -> f64 {
+    pub fn length(self) -> f64 {
         self.length_squared().sqrt()
     }
 
-    fn unit(self) -> Self {
+    pub fn unit(self) -> Self {
         self / self.length()
     }
 
-    fn dot(u: Vec3, v: Vec3) -> f64 {
+    pub fn dot(u: Vec3, v: Vec3) -> f64 {
         u.x * v.x + u.y * v.y + u.z * v.z
     }
 
-    fn cross(u: Vec3, v: Vec3) -> Vec3 {
+    pub fn cross(u: Vec3, v: Vec3) -> Vec3 {
         Vec3 {
             x: u.y * v.z - u.z * v.y,
             y: u.z * v.x - u.x * v.z,
