@@ -1,3 +1,5 @@
+mod vec3;
+
 fn main() {
     const IMAGE_WIDTH: usize = 256;
     const IMAGE_HEIGHT: usize = 256;
