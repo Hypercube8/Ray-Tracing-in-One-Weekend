@@ -12,8 +12,16 @@ pub struct Vec3 {
 pub type Point3 = Vec3;
 
 impl Vec3 {
-    pub fn new(x: f64, y: f64, z: f64) -> Vec3 {
+    pub const fn new(x: f64, y: f64, z: f64) -> Vec3 {
         Vec3 { x, y, z }
+    }
+
+    pub const fn zeroes() -> Vec3 {
+        Vec3 { x: 0.0, y: 0.0, z: 0.0 }
+    }
+
+    pub const fn ones() -> Vec3 {
+        Vec3 { x: 1.0, y: 1.0, z: 1.0 }
     }
 
     pub fn length_squared(self) -> f64 {
@@ -240,7 +248,7 @@ mod tests {
     #[test]
     #[should_panic(expected = "Mutable index 3 is out of bounds")]
     fn index_mut_out_of_bounds() {
-        let mut vec3 = Vec3::new(0.0, 0.0, 0.0);
+        let mut vec3 = Vec3::zeroes();
         vec3[3] = 1.0;
     }
 
@@ -255,7 +263,7 @@ mod tests {
         let mut vec3 = Vec3::new(1.0, 0.0, -1.0);
         let addend = Vec3::new(2.0, 2.0, 2.0);
         vec3 += Vec3::new(-1.0, 0.0, 1.0);
-        assert_eq!(vec3, Vec3::new(0.0, 0.0, 0.0));
+        assert_eq!(vec3, Vec3::zeroes());
         assert_eq!(vec3 + addend, Vec3::new(2.0, 2.0, 2.0));
     }
 
@@ -264,7 +272,7 @@ mod tests {
         let mut vec3 = Vec3::new(1.0, 0.0, -1.0);
         let subtrahend = Vec3::new(2.0, 2.0, 2.0);
         vec3 -= Vec3::new(1.0, 0.0, -1.0);
-        assert_eq!(vec3, Vec3::new(0.0, 0.0, 0.0));
+        assert_eq!(vec3, Vec3::zeroes());
         assert_eq!(vec3 - subtrahend, Vec3::new(-2.0, -2.0, -2.0));
     }
 
