@@ -1,31 +1,21 @@
 mod vec3;
 mod color;
 mod ray;
+mod geometry;
+mod hittable;
 
 use ray::Ray;
 use vec3::{Vec3, Point3};
 use color::{Color, write_color};
+use geometry::{HittableList, Sphere};
+use hittable::{Hittable, HitRecord};
 
-fn hit_sphere(center: &Point3, radius: f64, r: &Ray) -> Option<f64> {
-    let oc = *center - r.origin;
-    let a = Vec3::dot(r.direction, r.direction);
-    let b = -2.0 * Vec3::dot(r.direction, oc);
-    let c = Vec3::dot(oc, oc) - radius*radius;
-    let discriminant = b*b - 4.0*a*c;
-
-    if discriminant < 0.0 {
-        None
-    } else {
-        Some((-b - discriminant.sqrt()) / (2.0*a))
-    }
-}
-
-fn ray_color(r: &Ray) -> Color {
-    let hit = hit_sphere(&Point3::new(0.0, 0.0, -1.0), 0.5, &r);
+fn ray_color(r: &Ray, world: &HittableList) -> Color {
+    let hit = world.hit(r, (0.0, 10000000.0));
 
     if let Some(t) = hit {
-        let n = (r.at(t) - Vec3::new(0.0, 0.0, -1.0)).unit();
-        return 0.5 * Color::new(n.x+1.0, n.y+1.0, n.z+1.0);
+        let n = (r.at(t.t) - Vec3::new(0.0, 0.0, -1.0)).unit();
+        return 0.5 * (t.normal + Color::new(1.0, 1.0, 1.0));
     }
 
     let unit_direction = r.direction.unit();
@@ -38,6 +28,10 @@ fn main() {
 
     const IMAGE_HEIGHT: usize = 225;
     const IMAGE_WIDTH: usize = (IMAGE_HEIGHT as f64 * ASPECT_RATIO) as usize;
+
+    let mut world = HittableList::new();
+    world.add(Box::new(Sphere::new(Point3::new(0.0, 0.0, -1.0), 0.5)));
+    world.add(Box::new(Sphere::new(Point3::new(0.0, -100.5, -1.0), 100.0)));
 
     const VIEWPORT_HEIGHT: f64 = 2.0;
     const VIEWPORT_WIDTH: f64 = VIEWPORT_HEIGHT * (IMAGE_WIDTH as f64 / IMAGE_HEIGHT as f64); 
@@ -63,7 +57,7 @@ fn main() {
             let ray_direction = pixel_center - CAMERA_CENTER;
             let r = Ray::new(CAMERA_CENTER, ray_direction);
 
-            let pixel_color = ray_color(&r);
+            let pixel_color = ray_color(&r, &world);
             write_color(pixel_color);
         }
     }

@@ -11,3 +11,4 @@ pub fn write_color(pixel_color: Color) {
 
     println!("{} {} {}", r, g, b);
 }
+
