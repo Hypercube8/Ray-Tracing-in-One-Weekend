@@ -9,6 +9,7 @@ use camera::Camera;
 use hittable::Hittable;
 use geometry::{Scene, Sphere};
 use vec3::{Vec3, Point3};
+use std::io::{stdout, Write, BufWriter};
 
 
 fn main() {
@@ -24,5 +25,9 @@ fn main() {
     )));
 
     let mut cam = Camera::new(16.0 / 9.0, 400);
-    cam.render(&world);
+    
+    let mut stdout = stdout().lock();
+    let mut handle = BufWriter::new(stdout);
+    
+    cam.render(&mut handle, &world);
 }

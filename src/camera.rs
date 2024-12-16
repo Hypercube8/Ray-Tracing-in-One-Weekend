@@ -3,6 +3,7 @@ use crate::color::{Color, write_color};
 use crate::hittable::{Hittable, HitRecord};
 use crate::vec3::{Vec3, Point3};
 use std::f64::INFINITY;
+use std::io::Write;
 
 pub struct Camera {
     pub aspect_ratio: f64,
@@ -50,7 +51,7 @@ impl Camera {
 
     }
 
-    pub fn render(&mut self, world: &impl Hittable) {
+    pub fn render(&mut self, stream: &mut dyn Write, world: &impl Hittable) {
         self.init();
 
         print!("P3\n{} {}\n255\n", self.image_width, self.image_height);
@@ -63,7 +64,7 @@ impl Camera {
                 let r = Ray::new(self.center, ray_direction);
 
                 let pixel_color = Self::ray_color(&r, world);
-                write_color(pixel_color);
+                write_color(stream, pixel_color);
             }
         }
 
