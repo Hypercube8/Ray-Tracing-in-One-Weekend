@@ -47,14 +47,14 @@ impl Hittable for Sphere {
     }
 }
 
-pub struct HittableList {
+pub struct Scene {
     pub objects: Vec<Box<dyn Hittable>>
 
 }
 
-impl HittableList {
-    pub fn new() -> HittableList {
-        HittableList { objects: vec![] }
+impl Scene {
+    pub fn new() -> Scene {
+        Scene { objects: vec![] }
     }
 
     pub fn add(&mut self, object: Box<dyn Hittable>) {
@@ -66,7 +66,7 @@ impl HittableList {
     }
 }
 
-impl Hittable for HittableList {
+impl Hittable for Scene {
     fn hit(&self, r: &Ray, bounds: (f64, f64)) -> Option<HitRecord> {
         let mut closest = bounds.1;
         let mut rec: Option<HitRecord> = None;
