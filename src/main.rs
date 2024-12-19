@@ -4,6 +4,7 @@ mod geometry;
 mod vec3;
 mod ray;
 mod color;
+mod utils;
 
 use camera::Camera;
 use hittable::Hittable;
@@ -24,9 +25,9 @@ fn main() {
         100.0
     )));
 
-    let mut cam = Camera::new(16.0 / 9.0, 400);
+    let mut cam = Camera::new(16.0 / 9.0, 400, 100);
     
-    let mut stdout = stdout().lock();
+    let stdout = stdout().lock();
     let mut handle = BufWriter::new(stdout);
     
     cam.render(&mut handle, &world);

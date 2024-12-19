@@ -2,12 +2,15 @@ use crate::ray::Ray;
 use crate::color::{Color, write_color};
 use crate::hittable::{Hittable, HitRecord};
 use crate::vec3::{Vec3, Point3};
+use crate::utils::random_double;
 use std::f64::INFINITY;
 use std::io::Write;
 
 pub struct Camera {
     pub aspect_ratio: f64,
     pub image_height: usize,
+    pub samples_per_pixel: u32,
+    pixel_samples_scale: f64,
     image_width: usize,
     center: Point3,
     pixel00_loc: Point3,
@@ -16,12 +19,14 @@ pub struct Camera {
 }
 
 impl Camera {
-    pub fn new(aspect_ratio: f64, image_height: usize) -> Camera {
+    pub fn new(aspect_ratio: f64, image_height: usize, samples_per_pixel: u32) -> Camera {
         if aspect_ratio <= 0.0 { panic!("Aspect ratio must be positive") };
         if image_height <= 0 { panic!("Image height must be greater than zero") };
         Camera {
             aspect_ratio,
             image_height,
+            samples_per_pixel,
+            pixel_samples_scale: 0.0,
             image_width: 0,
             center: Vec3::zeroes(),
             pixel00_loc: Point3::zeroes(),
@@ -33,6 +38,8 @@ impl Camera {
     fn init(&mut self) {
         self.image_width = (self.image_height as f64 * self.aspect_ratio) as usize;
         self.image_width = if self.image_width > 0 { self.image_width } else { 1 };
+
+        self.pixel_samples_scale = 1.0 / self.samples_per_pixel as f64;
 
         self.center = Point3::zeroes();
         
@@ -51,6 +58,21 @@ impl Camera {
 
     }
 
+    fn sample_square() -> Vec3 {
+        Vec3::new(random_double() - 0.5, random_double() - 0.5, 0.0)
+    }
+
+    fn get_ray(&self, i: usize, j: usize) -> Ray {
+        let offset = Self::sample_square();
+        let pixel_sample = self.pixel00_loc 
+                            + ((i as f64 + offset.x) * self.pixel_delta_u)
+                            + ((j as f64 + offset.y) * self.pixel_delta_v);
+        let ray_origin = self.center;
+        let ray_direction = pixel_sample - ray_origin;
+
+        Ray::new(ray_origin, ray_direction)
+    }
+
     pub fn render(&mut self, stream: &mut dyn Write, world: &impl Hittable) {
         self.init();
 
@@ -59,12 +81,12 @@ impl Camera {
         for j in 0..self.image_height {
             eprintln!("Scanlines remaining: {}", self.image_height-j);
             for i in 0..self.image_width {
-                let pixel_center = self.pixel00_loc + (i as f64 * self.pixel_delta_u) + (j as f64 * self.pixel_delta_v);
-                let ray_direction = pixel_center - self.center;
-                let r = Ray::new(self.center, ray_direction);
-
-                let pixel_color = Self::ray_color(&r, world);
-                write_color(stream, pixel_color);
+                let mut pixel_color = Color::zeroes();
+                for _sample in 0..self.samples_per_pixel {
+                    let r = self.get_ray(i, j);
+                    pixel_color += Self::ray_color(&r, world);
+                }
+                write_color(stream, self.pixel_samples_scale * pixel_color);
             }
         }
 
