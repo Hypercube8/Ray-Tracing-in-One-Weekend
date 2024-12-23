@@ -10,6 +10,7 @@ pub struct Camera {
     pub aspect_ratio: f64,
     pub image_height: usize,
     pub samples_per_pixel: u32,
+    pub max_depth: u32,
     pixel_samples_scale: f64,
     image_width: usize,
     center: Point3,
@@ -19,13 +20,14 @@ pub struct Camera {
 }
 
 impl Camera {
-    pub fn new(aspect_ratio: f64, image_height: usize, samples_per_pixel: u32) -> Camera {
+    pub fn new(aspect_ratio: f64, image_height: usize, samples_per_pixel: u32, max_depth: u32) -> Camera {
         if aspect_ratio <= 0.0 { panic!("Aspect ratio must be positive") };
         if image_height <= 0 { panic!("Image height must be greater than zero") };
         Camera {
             aspect_ratio,
             image_height,
             samples_per_pixel,
+            max_depth,
             pixel_samples_scale: 0.0,
             image_width: 0,
             center: Vec3::zeroes(),
@@ -84,7 +86,7 @@ impl Camera {
                 let mut pixel_color = Color::zeroes();
                 for _sample in 0..self.samples_per_pixel {
                     let r = self.get_ray(i, j);
-                    pixel_color += Self::ray_color(&r, world);
+                    pixel_color += Self::ray_color(&r, self.max_depth, world);
                 }
                 write_color(stream, self.pixel_samples_scale * pixel_color);
             }
@@ -93,11 +95,15 @@ impl Camera {
         eprintln!("Done.");
     }
 
-    fn ray_color(r: &Ray, world: &impl Hittable) -> Color {
+    fn ray_color(r: &Ray, depth: u32, world: &impl Hittable) -> Color {
+        if depth <= 0 {
+            return Color::zeroes();
+        }
+
         let rec = world.hit(r, (0.0, INFINITY));
         if let Some(hit) = rec {
             let direction = Vec3::random_on_hemisphere(&hit.normal);
-            return 0.5 * Self::ray_color(&Ray::new(hit.p, direction), world);
+            return 0.5 * Self::ray_color(&Ray::new(hit.p, direction), depth-1, world);
         }
 
         let unit_direction = r.direction.unit();
