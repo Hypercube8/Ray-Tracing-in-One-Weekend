@@ -1,6 +1,7 @@
 use std::fmt;
 use assert_float_eq::assert_float_absolute_eq;
 use std::ops::{Neg, Add, Sub, Mul, Div, AddAssign, SubAssign, MulAssign, DivAssign, Index, IndexMut};
+use crate::utils::{random_double, random_range};
 
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub struct Vec3 {
@@ -24,6 +25,14 @@ impl Vec3 {
         Vec3 { x: 1.0, y: 1.0, z: 1.0 }
     }
 
+    pub fn random() -> Vec3 {
+        Vec3::new(random_double(), random_double(), random_double())
+    }
+
+    pub fn random_range(min: f64, max: f64) -> Vec3 {
+        Vec3::new(random_range(min, max), random_range(min, max), random_range(min, max))
+    }
+
     pub fn length_squared(self) -> f64 {
         self.x.powi(2) + self.y.powi(2) + self.z.powi(2)
     }
@@ -34,6 +43,25 @@ impl Vec3 {
 
     pub fn unit(self) -> Self {
         self / self.length()
+    }
+
+    pub fn random_unit() -> Vec3 {
+        loop {
+            let p = Vec3::random_range(-1.0, 1.0);
+            let lensq = p.length_squared();
+            if 1e-160 < lensq && lensq <= 1.0 {
+                return p / lensq.sqrt();
+            }
+        }
+    }
+
+    pub fn random_on_hemisphere(normal: &Vec3) -> Vec3 {
+        let on_unit_sphere = Vec3::random_unit();
+        if Vec3::dot(on_unit_sphere, *normal) > 0.0 {
+            on_unit_sphere
+        } else {
+            -on_unit_sphere
+        }
     }
 
     pub fn dot(u: Vec3, v: Vec3) -> f64 {
