@@ -32,12 +32,14 @@ fn main() {
     );
     let material_left = Rc::new(
         Metal::new(
-            Color::new(0.8, 0.8, 0.8)
+            Color::new(0.8, 0.8, 0.8),
+            0.3
         )
     );
     let material_right = Rc::new(
         Metal::new(
-            Color::new(0.8, 0.6, 0.2)
+            Color::new(0.8, 0.6, 0.2),
+            1.0
         )
     );
 
