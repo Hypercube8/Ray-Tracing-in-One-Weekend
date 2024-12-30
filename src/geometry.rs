@@ -1,16 +1,19 @@
 use crate::vec3::{Vec3, Point3};
 use crate::ray::Ray;
 use crate::hittable::{Hittable, HitRecord};
+use crate::material::Material;
+use std::rc::Rc;
 
 pub struct Sphere {
     center: Point3,
-    radius: f64
+    radius: f64,
+    mat: Rc<dyn Material>
 }
 
 impl Sphere { 
-    pub fn new(center: Point3, radius: f64) -> Sphere {
+    pub fn new(center: Point3, radius: f64, mat: Rc<dyn Material>) -> Sphere {
         if radius < 0.0 { panic!("Sphere cannot have negative radius") };
-        Sphere { center, radius }
+        Sphere { center, radius, mat }
     }
 }
 
@@ -42,7 +45,8 @@ impl Hittable for Sphere {
             p,
             normal: outward_normal,
             t: root,
-            front_face: true
+            front_face: true,
+            mat: self.mat.clone()
         }.set_face_normal(r, &outward_normal))
     }
 }
