@@ -12,7 +12,7 @@ use hittable::Hittable;
 use geometry::{Scene, Sphere};
 use vec3::{Vec3, Point3};
 use color::Color;
-use material::{Lambertian, Metal};
+use material::{Lambertian, Metal, Dielectric};
 use std::io::{stdout, Write, BufWriter};
 use std::rc::Rc;
 
@@ -31,9 +31,8 @@ fn main() {
         )
     );
     let material_left = Rc::new(
-        Metal::new(
-            Color::new(0.8, 0.8, 0.8),
-            0.3
+        Dielectric::new(
+            1.50
         )
     );
     let material_right = Rc::new(
