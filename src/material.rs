@@ -2,6 +2,7 @@ use crate::hittable::HitRecord;
 use crate::ray::Ray;
 use crate::color::Color;
 use crate::vec3::Vec3;
+use crate::utils::random_double;
 
 pub trait Material {
     fn scatter(&self, r_in: &Ray, rec: &HitRecord, attenuation: &mut Color, scattered: &mut Ray) -> bool;
@@ -62,6 +63,12 @@ impl Dielectric {
     pub fn new(refraction_index: f64) -> Dielectric {
         Dielectric { refraction_index }
     }
+
+    fn reflectance(cosine: f64, refraction_index: f64) -> f64 {
+        let mut r0 = (1.0 - refraction_index) / (1.0 + refraction_index);
+        r0 = r0.powi(2);
+        r0 + (1.0-r0) * (1.0 - cosine).powi(5)
+    }
 }
 
 impl Material for Dielectric {
@@ -75,7 +82,7 @@ impl Material for Dielectric {
 
         let cannot_refract = ri * sin_theta > 1.0;
 
-        let direction = if cannot_refract {
+        let direction = if cannot_refract || Self::reflectance(cos_theta, ri) > random_double() {
             Vec3::reflect(unit_direction, rec.normal)
         } else {
             Vec3::refract(unit_direction, rec.normal, ri)
