@@ -32,7 +32,7 @@ fn main() {
     );
     let material_left = Rc::new(
         Dielectric::new(
-            1.50
+            1.00 / 1.33
         )
     );
     let material_right = Rc::new(
