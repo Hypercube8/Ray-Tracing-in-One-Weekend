@@ -11,6 +11,7 @@ pub struct Camera {
     pub image_height: usize,
     pub samples_per_pixel: u32,
     pub max_depth: u32,
+    pub vfov: f64,
     pixel_samples_scale: f64,
     image_width: usize,
     center: Point3,
@@ -20,7 +21,7 @@ pub struct Camera {
 }
 
 impl Camera {
-    pub fn new(aspect_ratio: f64, image_height: usize, samples_per_pixel: u32, max_depth: u32) -> Camera {
+    pub fn new(aspect_ratio: f64, image_height: usize, samples_per_pixel: u32, max_depth: u32, vfov: f64) -> Camera {
         if aspect_ratio <= 0.0 { panic!("Aspect ratio must be positive") };
         if image_height <= 0 { panic!("Image height must be greater than zero") };
         Camera {
@@ -28,6 +29,7 @@ impl Camera {
             image_height,
             samples_per_pixel,
             max_depth,
+            vfov,
             pixel_samples_scale: 0.0,
             image_width: 0,
             center: Vec3::zeroes(),
@@ -46,7 +48,10 @@ impl Camera {
         self.center = Point3::zeroes();
         
         let focal_length = 1.0;
-        let viewport_height = 2.0;
+        let theta = self.vfov.to_radians();
+        let h = f64::tan(theta / 2.0);
+        
+        let viewport_height = 2.0 * h * focal_length;
         let viewport_width = viewport_height * (self.image_width as f64 / self.image_height as f64);
 
         let viewport_u = Vec3::new(viewport_width, 0.0, 0.0);
