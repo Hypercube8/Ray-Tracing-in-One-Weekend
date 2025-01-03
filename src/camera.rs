@@ -15,6 +15,8 @@ pub struct Camera {
     pub lookfrom: Point3,
     pub lookat: Point3,
     pub vup: Vec3,
+    pub defocus_angle: f64,
+    pub focus_dist: f64,
     pixel_samples_scale: f64,
     image_width: usize,
     center: Point3,
@@ -23,11 +25,13 @@ pub struct Camera {
     pixel_delta_v: Vec3,
     u: Vec3,
     v: Vec3,
-    w: Vec3
+    w: Vec3,
+    defocus_disk_u: Vec3,
+    defocus_disk_v: Vec3
 }
 
 impl Camera {
-    pub fn new(aspect_ratio: f64, image_height: usize, samples_per_pixel: u32, max_depth: u32, vfov: f64, lookfrom: Point3, lookat: Point3, vup: Vec3) -> Camera {
+    pub fn new(aspect_ratio: f64, image_height: usize, samples_per_pixel: u32, max_depth: u32, vfov: f64, lookfrom: Point3, lookat: Point3, vup: Vec3, defocus_angle: f64, focus_dist: f64) -> Camera {
         if aspect_ratio <= 0.0 { panic!("Aspect ratio must be positive") };
         if image_height <= 0 { panic!("Image height must be greater than zero") };
         Camera {
@@ -39,6 +43,8 @@ impl Camera {
             lookfrom,
             lookat,
             vup,
+            defocus_angle,
+            focus_dist,
             pixel_samples_scale: 0.0,
             image_width: 0,
             center: Vec3::zeroes(),
@@ -47,7 +53,9 @@ impl Camera {
             pixel_delta_v: Vec3::zeroes(),
             u: Vec3::zeroes(),
             v: Vec3::zeroes(),
-            w: Vec3::zeroes()
+            w: Vec3::zeroes(),
+            defocus_disk_u: Vec3::zeroes(),
+            defocus_disk_v: Vec3::zeroes()
         }
     } 
 
@@ -59,11 +67,10 @@ impl Camera {
 
         self.center = self.lookfrom;
         
-        let focal_length = (self.lookfrom - self.lookat).length();
         let theta = self.vfov.to_radians();
         let h = f64::tan(theta / 2.0);
         
-        let viewport_height = 2.0 * h * focal_length;
+        let viewport_height = 2.0 * h * self.focus_dist;
         let viewport_width = viewport_height * (self.image_width as f64 / self.image_height as f64);
 
         self.w = (self.lookfrom - self.lookat).unit();
@@ -76,13 +83,21 @@ impl Camera {
         self.pixel_delta_u = viewport_u / self.image_width as f64;
         self.pixel_delta_v = viewport_v / self.image_height as f64;
 
-        let viewport_upper_left = self.center - (focal_length * self.w) - viewport_u / 2.0 - viewport_v / 2.0;
+        let viewport_upper_left = self.center - (self.focus_dist * self.w) - viewport_u / 2.0 - viewport_v / 2.0;
         self.pixel00_loc = viewport_upper_left + 0.5 * (self.pixel_delta_u + self.pixel_delta_v);
 
+        let defocus_radius = self.focus_dist * f64::tan((self.defocus_angle / 2.0).to_radians());
+        self.defocus_disk_u = self.u * defocus_radius;
+        self.defocus_disk_v = self.v * defocus_radius;
     }
 
     fn sample_square() -> Vec3 {
         Vec3::new(random_double() - 0.5, random_double() - 0.5, 0.0)
+    }
+
+    fn defocus_disk_sample(&self) -> Point3 {
+        let p = Vec3::random_disk();
+        self.center + (p.x * self.defocus_disk_u) + (p.y * self.defocus_disk_v)
     }
 
     fn get_ray(&self, i: usize, j: usize) -> Ray {
@@ -90,7 +105,7 @@ impl Camera {
         let pixel_sample = self.pixel00_loc 
                             + ((i as f64 + offset.x) * self.pixel_delta_u)
                             + ((j as f64 + offset.y) * self.pixel_delta_v);
-        let ray_origin = self.center;
+        let ray_origin = if self.defocus_angle <= 0.0 { self.center } else { self.defocus_disk_sample() };
         let ray_direction = pixel_sample - ray_origin;
 
         Ray::new(ray_origin, ray_direction)
