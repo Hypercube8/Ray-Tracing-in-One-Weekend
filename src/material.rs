@@ -4,7 +4,7 @@ use crate::color::Color;
 use crate::vec3::Vec3;
 use crate::utils::random_double;
 
-pub trait Material {
+pub trait Material: Send + Sync {
     fn scatter(&self, r_in: &Ray, rec: &HitRecord, attenuation: &mut Color, scattered: &mut Ray) -> bool;
 }
 

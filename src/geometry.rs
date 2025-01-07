@@ -2,16 +2,16 @@ use crate::vec3::{Vec3, Point3};
 use crate::ray::Ray;
 use crate::hittable::{Hittable, HitRecord};
 use crate::material::Material;
-use std::rc::Rc;
+use std::sync::Arc;
 
 pub struct Sphere {
     center: Point3,
     radius: f64,
-    mat: Rc<dyn Material>
+    mat: Arc<dyn Material>
 }
 
 impl Sphere { 
-    pub fn new(center: Point3, radius: f64, mat: Rc<dyn Material>) -> Sphere {
+    pub fn new(center: Point3, radius: f64, mat: Arc<dyn Material>) -> Sphere {
         if radius < 0.0 { panic!("Sphere cannot have negative radius") };
         Sphere { center, radius, mat }
     }

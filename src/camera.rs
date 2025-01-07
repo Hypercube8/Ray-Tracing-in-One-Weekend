@@ -5,6 +5,7 @@ use crate::vec3::{Vec3, Point3};
 use crate::utils::random_double;
 use std::f64::INFINITY;
 use std::io::Write;
+use rayon::prelude::*;
 
 pub struct Camera {
     pub aspect_ratio: f64,
@@ -118,12 +119,18 @@ impl Camera {
 
         for j in 0..self.image_height {
             eprintln!("Scanlines remaining: {}", self.image_height-j);
-            for i in 0..self.image_width {
-                let mut pixel_color = Color::zeroes();
-                for _sample in 0..self.samples_per_pixel {
-                    let r = self.get_ray(i, j);
-                    pixel_color += Self::ray_color(&r, self.max_depth, world);
-                }
+            let pixel_colors: Vec<_> = (0..self.image_width)
+                .into_par_iter()
+                .map(|i| {
+                    let mut pixel_color = Color::zeroes();
+                    for _sample in 0..self.samples_per_pixel {
+                        let r = self.get_ray(i, j);
+                        pixel_color += Self::ray_color(&r, self.max_depth, world);
+                    }
+                    pixel_color
+                }) 
+                .collect();
+            for pixel_color in pixel_colors {
                 write_color(stream, self.pixel_samples_scale * pixel_color);
             }
         }
