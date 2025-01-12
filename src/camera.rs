@@ -1,11 +1,12 @@
 use crate::ray::Ray;
 use crate::color::{Color, write_color};
-use crate::hittable::{Hittable, HitRecord};
+use crate::hittable::Hittable;
 use crate::vec3::{Vec3, Point3};
 use crate::utils::random_double;
 use std::f64::INFINITY;
 use std::io::Write;
 use rayon::prelude::*;
+use indicatif::{ProgressBar, ProgressStyle};
 
 pub struct Camera {
     pub aspect_ratio: f64,
@@ -115,10 +116,22 @@ impl Camera {
     pub fn render(&mut self, stream: &mut dyn Write, world: &impl Hittable) {
         self.init();
 
+        let pb = ProgressBar::new(self.image_height as u64);
+        pb.set_style(
+            ProgressStyle::with_template(
+                "{spinner:.green} {msg} [{elapsed_precise}/{duration_precise}] {eta_precise} {bar:100.cyan/blue} {human_pos}/{human_len} ({percent_precise}%) ({per_sec})"
+            )
+            .unwrap()
+            .progress_chars("█▉▊▋▌▍▎▏  ")
+        );
+        pb.set_message("Raytracing...");
+        pb.set_position(0);
+        pb.reset_eta();
+
         print!("P3\n{} {}\n255\n", self.image_width, self.image_height);
 
         for j in 0..self.image_height {
-            eprintln!("Scanlines remaining: {}", self.image_height-j);
+            pb.set_position(j as u64);
             let pixel_colors: Vec<_> = (0..self.image_width)
                 .into_par_iter()
                 .map(|i| {
@@ -135,7 +148,7 @@ impl Camera {
             }
         }
 
-        eprintln!("Done.");
+        pb.finish_with_message("Done.");
     }
 
     fn ray_color(r: &Ray, depth: u32, world: &impl Hittable) -> Color {

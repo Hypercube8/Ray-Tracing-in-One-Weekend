@@ -8,12 +8,11 @@ mod utils;
 mod material;
 
 use camera::Camera;
-use hittable::Hittable;
 use geometry::{Scene, Sphere};
 use vec3::{Vec3, Point3};
 use color::Color;
 use material::{Lambertian, Metal, Dielectric};
-use std::io::{stdout, Write, BufWriter};
+use std::io::{stdout, BufWriter};
 use std::sync::Arc;
 use utils::{random_double, random_range};
 
@@ -64,7 +63,7 @@ fn main() {
     let mut cam = Camera::new(
         16.0 / 9.0, 
         720, 
-        10, 
+        100, 
         50, 
         20.0, 
         Point3::new(13.0, 2.0, 3.0), 
